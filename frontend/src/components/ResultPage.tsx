@@ -127,14 +127,15 @@ export function ResultPage({ room, myPublicId, connected, language, onRestart, o
 }
 
 function getCardImageUrl(role: string, publicPlayerId: string) {
+  const baseUrl = import.meta.env.BASE_URL;
   if (role === 'BONE_THIEF') {
-    return '/bone-thief.png';
+    return `${baseUrl}bone-thief.png`;
   }
   if (role === 'WHITE_DOG') {
-    return '/white-dog.png';
+    return `${baseUrl}white-dog.png`;
   }
   // Băm publicPlayerId để lấy chỉ số ổn định từ 1 đến 8 (các ảnh yard-dog-1.png -> yard-dog-8.png)
   const charSum = Array.from(publicPlayerId).reduce((acc, char) => acc + char.charCodeAt(0), 0);
   const cardIndex = 1 + (charSum % 8); // 1 đến 8
-  return `/yard-dog-${cardIndex}.png`;
+  return `${baseUrl}yard-dog-${cardIndex}.png`;
 }

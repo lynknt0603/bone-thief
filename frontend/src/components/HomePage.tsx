@@ -68,9 +68,9 @@ export function HomePage({ loading, language, onCreate, onJoin }: HomePageProps)
             : 'Vào sân, giữ bí mật trong chuồng riêng, rồi cùng cả bầy tìm người chơi đã lấy xương.'}
         </p>
         <div className="home-stacked-cards">
-          <img src="/bone-thief.png" className="stacked-card card-1" alt="Thẻ bài trộm" />
-          <img src="/yard-dog-1.png" className="stacked-card card-2" alt="Thẻ bài canh" />
-          <img src="/yard-dog-2.png" className="stacked-card card-3" alt="Thẻ bài canh" />
+          <img src={`${import.meta.env.BASE_URL}bone-thief.png`} className="stacked-card card-1" alt="Thẻ bài trộm" />
+          <img src={`${import.meta.env.BASE_URL}yard-dog-1.png`} className="stacked-card card-2" alt="Thẻ bài canh" />
+          <img src={`${import.meta.env.BASE_URL}yard-dog-2.png`} className="stacked-card card-3" alt="Thẻ bài canh" />
         </div>
       </section>
 

@@ -20,6 +20,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install and Build 🔧
+        env:
+          VITE_API_BASE_URL: https://bone-thief-backend.onrender.com
         run: |
           cd frontend
           npm install

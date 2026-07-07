@@ -92,7 +92,7 @@ export function Navbar({ connected, language, onHome, onPreferencesChanged }: Na
                 <a href="#" onClick={handleHomeClick}>
                   {language === 'EN' ? 'Home' : 'Trang chủ'}
                 </a>
-                <a href={`/guide.html?lang=${language}`} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>
+                <a href={`${import.meta.env.BASE_URL}guide.html?lang=${language}`} target="_blank" rel="noopener noreferrer" onClick={() => setMenuOpen(false)}>
                   {language === 'EN' ? 'Guide' : 'Hướng dẫn'}
                 </a>
                 <button type="button" onClick={openSettings}>

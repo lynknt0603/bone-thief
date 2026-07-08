@@ -51,10 +51,36 @@ export function LobbyPage({
   const [displayName, setDisplayName] = useState(me ? parseNickname(me.nickname).nickname : '');
   const [password, setPassword] = useState('');
   const [autoReady, setAutoReady] = useState(() => localStorage.getItem(AUTO_READY_KEY) === 'true');
+  const [nightSeconds, setNightSeconds] = useState(room.settings.nightSeconds.toString());
+  const [packSelectionSeconds, setPackSelectionSeconds] = useState(room.settings.packSelectionSeconds.toString());
 
   useEffect(() => {
     setDisplayName(me ? parseNickname(me.nickname).nickname : '');
   }, [me?.nickname]);
+
+  useEffect(() => {
+    setNightSeconds(room.settings.nightSeconds.toString());
+  }, [room.settings.nightSeconds]);
+
+  useEffect(() => {
+    setPackSelectionSeconds(room.settings.packSelectionSeconds.toString());
+  }, [room.settings.packSelectionSeconds]);
+
+  const handleNightSecondsBlur = () => {
+    let val = parseInt(nightSeconds, 10);
+    if (isNaN(val) || val < 5) val = 5;
+    if (val > 30) val = 30;
+    setNightSeconds(val.toString());
+    onSettings({ nightSeconds: val });
+  };
+
+  const handlePackSelectionSecondsBlur = () => {
+    let val = parseInt(packSelectionSeconds, 10);
+    if (isNaN(val) || val < 5) val = 5;
+    if (val > 30) val = 30;
+    setPackSelectionSeconds(val.toString());
+    onSettings({ packSelectionSeconds: val });
+  };
 
   useEffect(() => {
     if (connected && autoReady && me && !me.ready) {
@@ -145,26 +171,30 @@ export function LobbyPage({
             </div>
 
             <div className="settings-item-group">
-              <label>{language === 'EN' ? 'Each night hour (seconds)' : 'Mỗi canh giờ (giây)'}</label>
+              <label>{language === 'EN' ? 'Each night hour (5-30s)' : 'Mỗi canh giờ (5-30s)'}</label>
               <input
                 type="number"
                 min={5}
-                max={120}
+                max={30}
                 disabled={!isHost}
-                value={room.settings.nightSeconds}
-                onChange={event => onSettings({ nightSeconds: Number(event.target.value) })}
+                value={nightSeconds}
+                onChange={event => setNightSeconds(event.target.value)}
+                onBlur={handleNightSecondsBlur}
+                onKeyDown={event => { if (event.key === 'Enter') (event.target as HTMLInputElement).blur(); }}
               />
             </div>
 
             <div className="settings-item-group">
-              <label>{language === 'EN' ? 'Choose packmates (seconds)' : 'Chọn đồng bọn (giây)'}</label>
+              <label>{language === 'EN' ? 'Choose packmates (5-30s)' : 'Chọn đồng bọn (5-30s)'}</label>
               <input
                 type="number"
                 min={5}
-                max={120}
+                max={30}
                 disabled={!isHost}
-                value={room.settings.packSelectionSeconds}
-                onChange={event => onSettings({ packSelectionSeconds: Number(event.target.value) })}
+                value={packSelectionSeconds}
+                onChange={event => setPackSelectionSeconds(event.target.value)}
+                onBlur={handlePackSelectionSecondsBlur}
+                onKeyDown={event => { if (event.key === 'Enter') (event.target as HTMLInputElement).blur(); }}
               />
             </div>
 

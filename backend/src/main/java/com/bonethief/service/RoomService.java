@@ -25,7 +25,7 @@ public class RoomService {
     private static final int MIN_PLAYERS = 4;
     private static final int MAX_PLAYERS = 8;
     private static final int MIN_TIMER_SECONDS = 5;
-    private static final int MAX_TIMER_SECONDS = 120;
+    private static final int MAX_TIMER_SECONDS = 30;
     private static final int VOTING_SECONDS = 60;
     private static final int MAX_CHAT_MESSAGE_LENGTH = 240;
     private static final int CHAT_HISTORY_LIMIT = 100;

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { actionLabel, phaseLabel, parseNickname, roleLabel } from '../labels';
+import { useEffect, useMemo, useState, useRef } from 'react';
+import { actionLabel, phaseLabel, parseNickname, roleLabel, roleEmoji, roleGuides } from '../labels';
 import type { ActionPayload, PrivateStateDto, PublicRoomDto, RoomLanguage } from '../types';
 import { PrivatePanel } from './PrivatePanel';
 import { ResultPage } from './ResultPage';
@@ -11,19 +11,31 @@ interface GamePageProps {
   playerId: string;
   connected: boolean;
   language: RoomLanguage;
+  prevPhase: string | null;
   onAction: (payload: ActionPayload) => void;
   onRestart: () => void;
   onLeave: () => void;
   onChat: (message: string) => void;
 }
 
-export function GamePage({ room, privateState, playerId, connected, language, onAction, onRestart, onLeave, onChat }: GamePageProps) {
+type LocalizedText = Record<RoomLanguage, string>;
+
+interface AlertModalState {
+  show: boolean;
+  title: LocalizedText;
+  content: LocalizedText;
+}
+
+export function GamePage({ room, privateState, playerId, connected, language, prevPhase, onAction, onRestart, onLeave, onChat }: GamePageProps) {
   const [peekTarget, setPeekTarget] = useState('');
   const [voteTarget, setVoteTarget] = useState('');
   const [selectedPackmates, setSelectedPackmates] = useState<string[]>([]);
-  const [alertModal, setAlertModal] = useState<{ show: boolean; title: string; content: string } | null>(null);
+  const [alertModal, setAlertModal] = useState<AlertModalState | null>(null);
   const [prevPeekCount, setPrevPeekCount] = useState<number | null>(null);
   const [prevTheftCount, setPrevTheftCount] = useState<number | null>(null);
+  const [prevPresentObservationCount, setPrevPresentObservationCount] = useState<number | null>(null);
+  const [prevMissingObservationCount, setPrevMissingObservationCount] = useState<number | null>(null);
+  const [showRoleReveal, setShowRoleReveal] = useState(() => prevPhase === 'LOBBY');
 
 
   const myPublicId = privateState?.publicPlayerId ?? '';
@@ -53,23 +65,41 @@ export function GamePage({ room, privateState, playerId, connected, language, on
   }, [room.phase, room.currentHour]);
 
   useEffect(() => {
+    if (prevPhase === 'LOBBY') {
+      setShowRoleReveal(true);
+      const timer = setTimeout(() => {
+        setShowRoleReveal(false);
+      }, 10000);
+      return () => clearTimeout(timer);
+    }
+  }, [prevPhase]);
+
+  useEffect(() => {
     if (!privateState) {
       setPrevPeekCount(null);
       setPrevTheftCount(null);
+      setPrevPresentObservationCount(null);
+      setPrevMissingObservationCount(null);
       return;
     }
 
     const currentPeekCount = privateState.peekResults?.length ?? 0;
     const currentTheftCount = privateState.witnessedBoneThefts?.length ?? 0;
+    const currentPresentObservationCount = privateState.observedBonePresentHours?.length ?? 0;
+    const currentMissingObservationCount = privateState.observedBoneMissingHours?.length ?? 0;
 
     if (prevPeekCount !== null && currentPeekCount > prevPeekCount) {
       const latestPeek = privateState.peekResults[currentPeekCount - 1];
       setAlertModal({
         show: true,
-        title: language === 'EN' ? '🔍 Peek Clue' : '🔍 Xem dấu vết',
-        content: language === 'EN' 
-          ? `Dog ${parseNickname(latestPeek.targetNickname).nickname} woke up at ${latestPeek.wakeTimes.map(formatWakeHour).join(', ')}.` 
-          : `Chú chó ${parseNickname(latestPeek.targetNickname).nickname} thức dậy lúc ${latestPeek.wakeTimes.map(formatWakeHour).join(', ')}.`
+        title: {
+          EN: '🔍 Peek Clue',
+          VI: '🔍 Xem dấu vết',
+        },
+        content: {
+          EN: `Dog ${parseNickname(latestPeek.targetNickname).nickname} woke up at ${latestPeek.wakeTimes.map(formatWakeHour).join(', ')}.`,
+          VI: `Chú chó ${parseNickname(latestPeek.targetNickname).nickname} thức dậy lúc ${latestPeek.wakeTimes.map(formatWakeHour).join(', ')}.`,
+        },
       });
     }
 
@@ -77,15 +107,51 @@ export function GamePage({ room, privateState, playerId, connected, language, on
       const latestTheft = privateState.witnessedBoneThefts[currentTheftCount - 1];
       setAlertModal({
         show: true,
-        title: language === 'EN' ? '🦴 Bone Theft Caught!' : '🦴 Phát hiện Trộm Xương!',
-        content: language === 'EN' 
-          ? `Bone Thief ${parseNickname(latestTheft.thief.nickname).nickname} took the bone at ${formatWakeHour(latestTheft.hour)}!` 
-          : `Chó Trộm Xương ${parseNickname(latestTheft.thief.nickname).nickname} đã lấy xương lúc ${formatWakeHour(latestTheft.hour)}!`
+        title: {
+          EN: '🦴 Bone Theft Caught!',
+          VI: '🦴 Phát hiện Trộm Xương!',
+        },
+        content: {
+          EN: `Bone Thief ${parseNickname(latestTheft.thief.nickname).nickname} took the bone at ${formatWakeHour(latestTheft.hour)}!`,
+          VI: `Chó Trộm Xương ${parseNickname(latestTheft.thief.nickname).nickname} đã lấy xương lúc ${formatWakeHour(latestTheft.hour)}!`,
+        },
+      });
+    }
+
+    if (prevPresentObservationCount !== null && currentPresentObservationCount > prevPresentObservationCount) {
+      const latestHour = privateState.observedBonePresentHours[currentPresentObservationCount - 1];
+      setAlertModal({
+        show: true,
+        title: {
+          EN: '🦴 Bone Is Still There',
+          VI: '🦴 Xương vẫn còn',
+        },
+        content: {
+          EN: `When you woke at ${formatWakeHour(latestHour)}, the bone was still in the yard.`,
+          VI: `Khi bạn thức lúc ${formatWakeHour(latestHour)}, xương vẫn còn trong sân.`,
+        },
+      });
+    }
+
+    if (prevMissingObservationCount !== null && currentMissingObservationCount > prevMissingObservationCount) {
+      const latestHour = privateState.observedBoneMissingHours[currentMissingObservationCount - 1];
+      setAlertModal({
+        show: true,
+        title: {
+          EN: '🦴 Bone Is Missing!',
+          VI: '🦴 Xương đã mất!',
+        },
+        content: {
+          EN: `When you woke at ${formatWakeHour(latestHour)}, the bone was already missing.`,
+          VI: `Khi bạn thức lúc ${formatWakeHour(latestHour)}, xương đã bị lấy mất.`,
+        },
       });
     }
 
     setPrevPeekCount(currentPeekCount);
     setPrevTheftCount(currentTheftCount);
+    setPrevPresentObservationCount(currentPresentObservationCount);
+    setPrevMissingObservationCount(currentMissingObservationCount);
   }, [privateState, language]);
 
   if (room.phase === 'RESULT') {
@@ -140,10 +206,10 @@ export function GamePage({ room, privateState, playerId, connected, language, on
           </div>
         </section>
 
-        <section className="panel">
+        <section className="panel yard-status-panel">
           <div className="panel-heading">
             <span>🏡</span>
-            <h2>{language === 'EN' ? 'Yard Status' : 'Trạng thái sân'}</h2>
+            <h2>{language === 'EN' ? 'Pack Overview' : 'Theo dõi đàn chó'}</h2>
           </div>
           <div className="player-grid compact">
             {room.players.map(player => {
@@ -151,7 +217,7 @@ export function GamePage({ room, privateState, playerId, connected, language, on
               const isMe = player.id === myPublicId;
               const cardClass = isMe ? 'player-tile card-self' : 'player-tile';
               
-              // Tính toán nhãn vai trò
+              // Calculate role label
               let roleText = '???';
               if (privateState) {
                 if (isMe) {
@@ -382,11 +448,8 @@ export function GamePage({ room, privateState, playerId, connected, language, on
             </div>
           )}
         </section>
-      </section>
-
-      <aside className="side-stack">
-        <PrivatePanel privateState={privateState} language={language} />
         <RoomChat
+          className="game-chat-panel"
           messages={room.chatMessages}
           myPublicId={myPublicId}
           language={language}
@@ -394,15 +457,19 @@ export function GamePage({ room, privateState, playerId, connected, language, on
           disabledReason={chatDisabledReason}
           onSend={onChat}
         />
+      </section>
+
+      <aside className="side-stack">
+        <PrivatePanel privateState={privateState} language={language} />
         {alertModal && alertModal.show && (
-          <div className="modal-overlay" style={{ zIndex: 3000 }}>
-            <div className="modal-content settings-panel" style={{ width: '90%', maxWidth: '420px', textAlign: 'center' }}>
-              <h2>{alertModal.title}</h2>
-              <p className="modal-message-body" style={{ margin: '20px 0', fontSize: '1.15rem', color: 'var(--ink)', fontWeight: '500', lineHeight: '1.5' }}>
-                {alertModal.content}
+          <div className="modal-overlay">
+            <div className="modal-content settings-panel modal-alert-content">
+              <h2>{alertModal.title[language]}</h2>
+              <p className="modal-message-body">
+                {alertModal.content[language]}
               </p>
-              <div className="modal-actions" style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
-                <button className="primary-button" onClick={() => setAlertModal(null)} style={{ padding: '8px 32px' }}>
+              <div className="modal-actions">
+                <button className="primary-button modal-confirm-btn" onClick={() => setAlertModal(null)}>
                   {language === 'EN' ? 'Confirm' : 'Xác nhận'}
                 </button>
               </div>
@@ -410,6 +477,47 @@ export function GamePage({ room, privateState, playerId, connected, language, on
           </div>
         )}
       </aside>
+      {showRoleReveal && privateState?.role && (
+        <div className="role-reveal-overlay">
+          <div className="role-reveal-card">
+            <span className="role-reveal-emoji">
+              {roleEmoji(privateState.role)}
+            </span>
+            <small className="role-reveal-subtitle">
+              {language === 'EN' ? 'Your Secret Role' : 'Vai Trò Bí Mật Của Bạn'}
+            </small>
+            <h1 className="role-reveal-title">
+              {roleLabel(privateState.role, language)}
+            </h1>
+            
+            <div className="role-reveal-guide-box">
+              <p className="role-reveal-guide-row">
+                <strong>{language === 'EN' ? 'Alignment: ' : 'Phe: '}</strong> 
+                <span className="role-reveal-alignment">{roleGuides[language][privateState.role].alignment}</span>
+              </p>
+              <p className="role-reveal-win-condition-row">
+                <strong>{language === 'EN' ? 'Win Condition: ' : 'Điều kiện thắng: '}</strong> 
+                <span className="role-reveal-win-condition">{roleGuides[language][privateState.role].winCondition}</span>
+              </p>
+            </div>
+
+            <div className="role-reveal-tips-box">
+              <h3 className="role-reveal-tips-title">
+                {language === 'EN' ? '💡 Tips for you:' : '💡 Mẹo chơi dành cho bạn:'}
+              </h3>
+              <ul className="role-reveal-tips-list">
+                {roleGuides[language][privateState.role].tips.map((tip, index) => (
+                  <li key={index} className="role-reveal-tip-item">{tip}</li>
+                ))}
+              </ul>
+            </div>
+            
+            <div className="role-reveal-timer-text">
+              {language === 'EN' ? 'Starting in a few seconds...' : 'Trò chơi sẽ bắt đầu trong giây lát...'}
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
@@ -456,8 +564,8 @@ function phaseDescription(room: PublicRoomDto, language: RoomLanguage): string {
   }
   if (room.phase === 'DISCUSSION') {
     return room.boneMissing 
-      ? (language === 'EN' ? 'The bone is missing. Discuss before voting.' : 'Xương đã mất. Hãy suy luận trước khi vote.') 
-      : (language === 'EN' ? 'Yard discussion.' : 'Cả sân bắt đầu suy luận.');
+      ? (language === 'EN' ? 'The bone is missing. Discuss before voting.' : 'Xương đã mất. Hãy thảo luận trước khi vote.') 
+      : (language === 'EN' ? 'Yard discussion.' : 'Cả sân cùng thảo luận.');
   }
   if (room.phase === 'VOTING') {
     const voted = room.players.filter(player => player.hasVoted).length;

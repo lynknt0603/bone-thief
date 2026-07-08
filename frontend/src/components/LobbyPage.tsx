@@ -102,7 +102,7 @@ export function LobbyPage({
       </header>
 
       <section className="lobby-grid-layout">
-        {/* Cột trái: Cài đặt phòng */}
+        {/* Left column: Room settings */}
         <section className="panel lobby-settings-panel">
           <div className="panel-heading">
             <span>⚙️</span>
@@ -116,7 +116,7 @@ export function LobbyPage({
                 <input
                   value={displayName}
                   onChange={event => setDisplayName(event.target.value)}
-                  maxLength={24}
+                  maxLength={12}
                   placeholder={language === 'EN' ? 'Your name' : 'Tên của bạn'}
                 />
                 <button
@@ -233,7 +233,7 @@ export function LobbyPage({
           </div>
         </section>
 
-        {/* Cột phải: Người chơi & nút bấm */}
+        {/* Right column: Players & actions */}
         <section className="panel lobby-players-panel">
           <div className="panel-heading">
             <span>🐾</span>
@@ -268,7 +268,7 @@ export function LobbyPage({
               );
             })}
 
-            {/* Các slot trống */}
+            {/* Empty slots */}
             {Array.from({ length: Math.max(0, room.settings.maxPlayers - room.players.length) }).map((_, index) => (
               <article className="player-tile card-empty-slot" key={`empty-slot-${index}`}>
                 <span className="avatar-plus">+</span>
@@ -302,7 +302,7 @@ export function LobbyPage({
                   {language === 'EN' ? 'Start game' : 'Bắt đầu chơi'} ({room.players.length}/{room.settings.maxPlayers})
                 </button>
               )}
-              <button className="ghost-button size-large" onClick={onLeave}>
+              <button className="ghost-button size-large leave-button" onClick={onLeave}>
                 {language === 'EN' ? 'Leave' : 'Rời phòng'}
               </button>
             </div>

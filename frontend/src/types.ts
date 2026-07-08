@@ -75,6 +75,8 @@ export interface PrivateStateDto {
   coAwakeRecords: CoAwakeRecordDto[];
   witnessedBoneTakenHours: number[];
   witnessedBoneThefts: WitnessedBoneTheftDto[];
+  observedBonePresentHours: number[];
+  observedBoneMissingHours: number[];
   knownPackmates: PrivatePlayerHintDto[];
   knownBoneThief: PrivatePlayerHintDto | null;
   selectablePlayers: PrivatePlayerHintDto[];

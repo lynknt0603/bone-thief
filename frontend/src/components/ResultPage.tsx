@@ -1,4 +1,4 @@
-import { roleLabel, winningPackLabel, parseNickname } from '../labels';
+import { roleLabel, winningPackLabel, parseNickname, getCardImageUrl } from '../labels';
 import type { PublicRoomDto, RoomLanguage } from '../types';
 import { RoomChat } from './RoomChat';
 
@@ -15,6 +15,19 @@ interface ResultPageProps {
 export function ResultPage({ room, myPublicId, connected, language, onRestart, onLeave, onChat }: ResultPageProps) {
   const result = room.result;
   const isHost = room.hostPlayerId === myPublicId;
+
+  const winners = result ? result.finalRoles.filter(player => {
+    if (result.winningPack === 'THIEF_PACK') {
+      return player.role === 'BONE_THIEF' || player.role === 'PACKMATE';
+    }
+    if (result.winningPack === 'YARD_PACK') {
+      return player.role === 'YARD_DOG';
+    }
+    if (result.winningPack === 'WHITE_DOG') {
+      return player.role === 'WHITE_DOG';
+    }
+    return false;
+  }) : [];
 
   return (
     <main className="result-shell">
@@ -34,26 +47,45 @@ export function ResultPage({ room, myPublicId, connected, language, onRestart, o
       ) : (
         <>
           <header className="result-header-modern">
-            <p className="result-eyebrow">
-              {result.winningPack === 'WHITE_DOG'
-                ? '🤍 WHITE DOG WINS'
-                : result.winningPack === 'YARD_PACK'
-                  ? '🏡 YARD DOGS WINS'
-                  : '🦴 THIEF BONE WINS'}
-            </p>
             <div className="result-title-row">
-              <h1>{language === 'EN' ? 'Winner: ' : 'Phe thắng: '}{winningPackLabel(result.winningPack, language)}</h1>
+              <h1>
+                {language === 'EN' ? 'Winner: ' : 'Phe thắng: '}
+                {result.winningPack === 'WHITE_DOG' ? '🤍 ' : result.winningPack === 'YARD_PACK' ? '🏡 ' : '🦴 '}
+                {winningPackLabel(result.winningPack, language)}
+              </h1>
               <span className="room-badge">#{room.roomCode}</span>
             </div>
-            <p className="thief-reveal-text">
-              {language === 'EN' ? 'Bone Thief is ' : 'Chó Trộm Xương là '}<strong>{parseNickname(result.boneThief.nickname).nickname}</strong>.
-            </p>
-            {result.packmates && result.packmates.length > 0 && (
-              <p className="thief-reveal-text" style={{ marginTop: '4px' }}>
-                {language === 'EN' ? 'Thief packmates: ' : 'Đồng bọn trộm xương: '}<strong>{result.packmates.map(p => parseNickname(p.nickname).nickname).join(', ')}</strong>
-              </p>
-            )}
           </header>
+
+          <section className="panel winner-celebration-panel">
+            <div className="winners-grid">
+              {winners.map(winner => {
+                const { icon, nickname } = parseNickname(winner.nickname);
+                return (
+                  <div key={winner.playerId} className="winner-card-detail">
+                    <span className="winner-banner-badge">
+                      WINNER
+                    </span>
+                    
+                    <img
+                      src={getCardImageUrl(winner.role, winner.playerId)}
+                      alt={roleLabel(winner.role, language)}
+                      className="winner-dog-card-img"
+                    />
+                    <div className="winner-name-row">
+                      <span className="winner-name-icon">{icon}</span>
+                      <strong className="winner-nickname-text" title={nickname}>
+                        {nickname}
+                      </strong>
+                    </div>
+                    <small className="winner-role-text">
+                      {roleLabel(winner.role, language)}
+                    </small>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
 
           <section className="panel">
             <div className="panel-heading">
@@ -124,18 +156,4 @@ export function ResultPage({ room, myPublicId, connected, language, onRestart, o
       />
     </main>
   );
-}
-
-function getCardImageUrl(role: string, publicPlayerId: string) {
-  const baseUrl = import.meta.env.BASE_URL;
-  if (role === 'BONE_THIEF') {
-    return `${baseUrl}bone-thief.png`;
-  }
-  if (role === 'WHITE_DOG') {
-    return `${baseUrl}white-dog.png`;
-  }
-  // Băm publicPlayerId để lấy chỉ số ổn định từ 1 đến 8 (các ảnh yard-dog-1.png -> yard-dog-8.png)
-  const charSum = Array.from(publicPlayerId).reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const cardIndex = 1 + (charSum % 8); // 1 đến 8
-  return `${baseUrl}yard-dog-${cardIndex}.png`;
 }

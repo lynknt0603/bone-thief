@@ -1,4 +1,4 @@
-import { actionLabel, roleEmoji, roleLabel, parseNickname } from '../labels';
+import { actionLabel, roleEmoji, roleLabel, parseNickname, getCardImageUrl } from '../labels';
 import type { PrivateStateDto, RoomLanguage } from '../types';
 
 interface PrivatePanelProps {
@@ -15,6 +15,9 @@ export function PrivatePanel({ privateState, language }: PrivatePanelProps) {
       </aside>
     );
   }
+
+  const observedBonePresentHours = privateState.observedBonePresentHours ?? [];
+  const observedBoneMissingHours = privateState.observedBoneMissingHours ?? [];
 
   return (
     <aside className="private-panel">
@@ -64,15 +67,31 @@ export function PrivatePanel({ privateState, language }: PrivatePanelProps) {
         </div>
       )}
 
-      {privateState.witnessedBoneThefts.length > 0 && (
+      {(privateState.witnessedBoneThefts.length > 0 ||
+        observedBonePresentHours.length > 0 ||
+        observedBoneMissingHours.length > 0) && (
         <div className="info-block witness-alert">
           <span>{language === 'EN' ? 'Witnessed clues' : 'Dấu vết bạn đã thấy'}</span>
           <div className="memory-list">
+            {observedBonePresentHours.map(hour => (
+              <p className="memory-row" key={`bone-present-${hour}`}>
+                <span>{language === 'EN' ? 'Bone check' : 'Kiểm tra xương'}</span>
+                <strong>{language === 'EN' ? 'Bone was still there' : 'Xương vẫn còn'}</strong>
+                <span>{language === 'EN' ? `at ${formatWakeHour(hour)}` : `lúc ${formatWakeHour(hour)}`}</span>
+              </p>
+            ))}
             {privateState.witnessedBoneThefts.map(event => (
               <p className="memory-row" key={`${event.thief.id}-${event.hour}`}>
                 <span>{language === 'EN' ? 'Bone Thief' : 'Chó Trộm Xương'}</span>
                 <strong>{parseNickname(event.thief.nickname).nickname}</strong>
                 <span>{language === 'EN' ? `took bone at ${formatWakeHour(event.hour)}` : `đã lấy xương lúc ${formatWakeHour(event.hour)}`}</span>
+              </p>
+            ))}
+            {observedBoneMissingHours.map(hour => (
+              <p className="memory-row" key={`bone-missing-${hour}`}>
+                <span>{language === 'EN' ? 'Bone check' : 'Kiểm tra xương'}</span>
+                <strong>{language === 'EN' ? 'Bone was already missing' : 'Xương đã mất'}</strong>
+                <span>{language === 'EN' ? `when you woke at ${formatWakeHour(hour)}` : `khi bạn thức lúc ${formatWakeHour(hour)}`}</span>
               </p>
             ))}
           </div>
@@ -170,18 +189,4 @@ export function PrivatePanel({ privateState, language }: PrivatePanelProps) {
 
 function formatWakeHour(hour: number): string {
   return `${hour}:00pm`;
-}
-
-function getCardImageUrl(role: string, publicPlayerId: string) {
-  const baseUrl = import.meta.env.BASE_URL;
-  if (role === 'BONE_THIEF') {
-    return `${baseUrl}bone-thief.png`;
-  }
-  if (role === 'WHITE_DOG') {
-    return `${baseUrl}white-dog.png`;
-  }
-  // Băm publicPlayerId để lấy chỉ số ổn định từ 1 đến 8 (các ảnh yard-dog-1.png -> yard-dog-8.png)
-  const charSum = Array.from(publicPlayerId).reduce((acc, char) => acc + char.charCodeAt(0), 0);
-  const cardIndex = 1 + (charSum % 8); // 1 đến 8
-  return `${baseUrl}yard-dog-${cardIndex}.png`;
 }

@@ -89,7 +89,7 @@ export function HomePage({ loading, language, onCreate, onJoin }: HomePageProps)
                 localStorage.setItem(NICKNAME_KEY, event.target.value);
               }}
               placeholder={language === 'EN' ? 'Your name' : 'Tên của bạn'}
-              maxLength={24}
+              maxLength={12}
             />
           </label>
           <label>
@@ -140,7 +140,7 @@ export function HomePage({ loading, language, onCreate, onJoin }: HomePageProps)
                 localStorage.setItem(NICKNAME_KEY, event.target.value);
               }}
               placeholder={language === 'EN' ? 'Your name' : 'Tên của bạn'}
-              maxLength={24}
+              maxLength={12}
             />
           </label>
           <label>

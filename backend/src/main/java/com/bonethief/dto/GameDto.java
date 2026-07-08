@@ -15,7 +15,9 @@ public class GameDto {
                                List<Integer> diceRolls, boolean awake, List<PlayerHint> awakePlayers,
                                List<PlayerActionType> allowedActions, List<PeekResult> peekResults,
                                List<CoAwakeRecord> coAwakeRecords, List<Integer> witnessedBoneTakenHours,
-                               List<WitnessedBoneTheft> witnessedBoneThefts, List<PlayerHint> knownPackmates,
+                               List<WitnessedBoneTheft> witnessedBoneThefts,
+                               List<Integer> observedBonePresentHours, List<Integer> observedBoneMissingHours,
+                               List<PlayerHint> knownPackmates,
                                PlayerHint knownBoneThief, List<PlayerHint> selectablePlayers,
                                int requiredSelectionCount, String message) {
     }

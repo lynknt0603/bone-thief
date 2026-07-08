@@ -9,12 +9,13 @@ const ICON_KEY = 'boneThief.icon';
 
 interface NavbarProps {
   connected: boolean;
+  inRoom: boolean;
   language: RoomLanguage;
   onHome: () => void;
   onPreferencesChanged: () => void;
 }
 
-export function Navbar({ connected, language, onHome, onPreferencesChanged }: NavbarProps) {
+export function Navbar({ connected, inRoom, language, onHome, onPreferencesChanged }: NavbarProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [settingsLanguage, setSettingsLanguage] = useState<RoomLanguage>(() =>
@@ -72,14 +73,16 @@ export function Navbar({ connected, language, onHome, onPreferencesChanged }: Na
             </svg>
           </a>
 
-          <div className="nav-conn-status">
-            <span className={`conn-indicator ${connected ? 'online' : 'offline'}`} />
-            <span className="conn-text">
-              {connected
-                ? language === 'EN' ? 'Connected' : 'Đã kết nối'
-                : language === 'EN' ? 'Connecting...' : 'Đang kết nối...'}
-            </span>
-          </div>
+          {inRoom && (
+            <div className="nav-conn-status">
+              <span className={`conn-indicator ${connected ? 'online' : 'offline'}`} />
+              <span className="conn-text">
+                {connected
+                  ? language === 'EN' ? 'Connected' : 'Đã kết nối'
+                  : language === 'EN' ? 'Connecting...' : 'Đang kết nối...'}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="navbar-right">
@@ -119,7 +122,7 @@ export function Navbar({ connected, language, onHome, onPreferencesChanged }: Na
               </label>
               <label>
                 {language === 'EN' ? 'Default nickname' : 'Nickname mặc định'}
-                <input value={settingsNickname} onChange={event => setSettingsNickname(event.target.value)} maxLength={24} placeholder={language === 'EN' ? 'Your Dog name' : 'Tên Dog của bạn'} />
+                <input value={settingsNickname} onChange={event => setSettingsNickname(event.target.value)} maxLength={12} placeholder={language === 'EN' ? 'Your Dog name' : 'Tên Dog của bạn'} />
               </label>
               <label>
                 {language === 'EN' ? 'Dog Icon' : 'Biểu tượng Chó'}

@@ -235,11 +235,30 @@ h2,
 .ghost-button {
   border: 1px solid rgba(244, 216, 139, 0.55);
   background: rgba(13, 42, 32, 0.2);
-  color: #244432;
+  color: #d1c8ab;
 }
 
 .ghost-button:hover:not(:disabled) {
   background: rgba(244, 216, 139, 0.18);
+  color: #f4d88b;
+}
+
+/* High contrast ghost buttons when placed inside light panels or modals */
+.panel .ghost-button,
+.private-panel .ghost-button,
+.settings-panel .ghost-button,
+.modal-content .ghost-button {
+  border: 1px solid rgba(38, 52, 39, 0.45);
+  background: rgba(38, 52, 39, 0.05);
+  color: var(--ink);
+}
+
+.panel .ghost-button:hover:not(:disabled),
+.private-panel .ghost-button:hover:not(:disabled),
+.settings-panel .ghost-button:hover:not(:disabled),
+.modal-content .ghost-button:hover:not(:disabled) {
+  background: rgba(38, 52, 39, 0.12);
+  color: #173729;
 }
 
 .app-shell {
@@ -417,6 +436,22 @@ h2,
 
 .chat-panel {
   gap: 12px;
+}
+
+.action-panel {
+  order: 1;
+}
+
+.yard-status-panel {
+  order: 2;
+}
+
+.game-chat-panel {
+  order: 3;
+}
+
+.yard-area > .game-chat-panel .chat-list {
+  max-height: 280px;
 }
 
 .lobby-grid-layout > .chat-panel {
@@ -1080,15 +1115,15 @@ h2,
   width: 9px;
   height: 9px;
   border-radius: 50%;
-  background: #dbb2a8; /* Mặc định mất kết nối */
+  background: #dbb2a8; /* Default offline */
   margin-left: 10px;
 }
 
 .conn-dot[data-online="true"] {
-  background: #1f6f5b; /* Kết nối tốt */
+  background: #1f6f5b; /* Connected */
 }
 
-/* Thẻ người chơi tối giản trong lobby */
+/* Minimalist player cards in lobby */
 .player-grid .player-tile {
   border: 1px solid #d8dfd1;
   transition: transform 0.2s ease, border-color 0.2s ease;
@@ -1125,7 +1160,7 @@ h2,
   opacity: 0.85;
 }
 
-/* Layout chia làm 2 cột trong Lobby */
+/* Two-column layout in Lobby */
 .lobby-grid-layout {
   display: grid;
   grid-template-columns: 320px 1fr;
@@ -1186,7 +1221,7 @@ h2,
   color: #4a5c50;
 }
 
-/* Các slot trống dấu + */
+/* Empty slots with plus sign */
 .player-grid .card-empty-slot {
   border: 1px dashed #cfd9c5;
   background: transparent;
@@ -1210,6 +1245,20 @@ h2,
   padding-top: 20px;
 }
 
+.lobby-actions-area .leave-button {
+  border-color: rgba(49, 95, 70, 0.55);
+  background: #fff7d6;
+  color: #244635;
+  font-weight: 900;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.48);
+}
+
+.lobby-actions-area .leave-button:hover:not(:disabled) {
+  border-color: #315f46;
+  background: #fff0bd;
+  color: #173729;
+}
+
 .size-large {
   padding: 0 24px;
   min-height: 48px;
@@ -1221,7 +1270,7 @@ h2,
   margin-top: 10px;
 }
 
-/* Container xếp bài nghiêng 3D ở Trang chủ */
+/* 3D card deck layout on Home page */
 .home-stacked-cards {
   position: relative;
   height: 240px;
@@ -1257,7 +1306,7 @@ h2,
   z-index: 3;
 }
 
-/* Hiệu ứng xòe bài khi hover */
+/* Card fan hover effect */
 .home-stacked-cards:hover .card-1 {
   transform: rotate(-20deg) translateX(-95px) scale(1.05);
   z-index: 4;
@@ -1273,7 +1322,7 @@ h2,
   z-index: 6;
 }
 
-/* Định dạng Input của trang chủ sáng sủa */
+/* Clean inputs style on Home page */
 .home-actions input,
 .home-actions select {
   background: #ffffff;
@@ -1430,7 +1479,7 @@ h2,
   color: #f7b76d;
 }
 
-/* Modal hướng dẫn */
+/* Guide modal */
 .rules-modal-overlay {
   position: fixed;
   top: 0;
@@ -1545,7 +1594,7 @@ h2,
   text-decoration: none;
 }
 
-/* Switch Toggle - Tự động sẵn sàng */
+/* Switch Toggle - Auto ready */
 .auto-ready-row {
   display: flex;
   align-items: center;
@@ -1754,4 +1803,234 @@ h2,
 .co-awake-alert p {
   margin: 0;
   color: #926702;
+}
+
+/* Modal overlay and content rules */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.45);
+  z-index: 3000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+
+.modal-alert-content {
+  width: 90%;
+  max-width: 420px;
+  text-align: center;
+}
+
+.modal-message-body {
+  margin: 20px 0;
+  font-size: 1.15rem;
+  color: var(--ink);
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.modal-confirm-btn {
+  padding: 8px 32px;
+}
+
+/* Secret role reveal animation and layouts */
+.role-reveal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #0b1a13;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  color: #e8e2cf;
+}
+
+.role-reveal-card {
+  background: #132c21;
+  border: 2px solid #e1c66b;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
+}
+
+.role-reveal-emoji {
+  font-size: 4.5rem;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.role-reveal-subtitle {
+  color: #8fa67c;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+.role-reveal-title {
+  font-size: 2.5rem;
+  color: #e1c66b;
+  margin: 8px 0 16px 0;
+  font-family: 'Inter', sans-serif;
+  font-weight: 800;
+}
+
+.role-reveal-guide-box {
+  background: rgba(11, 26, 19, 0.5);
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  text-align: left;
+  border: 1px solid rgba(143, 166, 124, 0.2);
+}
+
+.role-reveal-guide-row {
+  margin: 0 0 8px 0;
+  font-size: 1rem;
+  color: #cbd7bf;
+}
+
+.role-reveal-alignment {
+  color: #fff;
+}
+
+.role-reveal-win-condition-row {
+  margin: 0;
+  font-size: 1rem;
+  color: #cbd7bf;
+  line-height: 1.4;
+}
+
+.role-reveal-win-condition {
+  color: #f6dc93;
+}
+
+.role-reveal-tips-box {
+  text-align: left;
+}
+
+.role-reveal-tips-title {
+  margin: 0 0 10px 0;
+  font-size: 1.1rem;
+  color: #e1c66b;
+}
+
+.role-reveal-tips-list {
+  margin: 0;
+  padding-left: 20px;
+  color: #e8e2cf;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.role-reveal-tip-item {
+  margin-bottom: 8px;
+}
+
+.role-reveal-timer-text {
+  margin-top: 24px;
+  color: #8fa67c;
+  font-size: 0.85rem;
+}
+
+/* Winner celebration results style */
+.winner-celebration-panel {
+  background: linear-gradient(135deg, rgba(19, 44, 33, 0.95), rgba(13, 31, 23, 0.95)) !important;
+  border: 2px solid #e1c66b !important;
+  border-radius: 16px !important;
+  padding: 28px 16px 20px 16px !important;
+  text-align: center;
+  box-shadow: 0 8px 32px rgba(225, 198, 107, 0.15);
+  margin-bottom: 20px;
+}
+
+.winners-grid {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.winner-card-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: rgba(11, 26, 19, 0.75);
+  border: 1px solid rgba(225, 198, 107, 0.35);
+  border-radius: 12px;
+  padding: 20px 12px 12px 12px;
+  width: 145px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.winner-banner-badge {
+  position: absolute;
+  top: -10px;
+  background: linear-gradient(180deg, #fff6d4, #f6dc93);
+  color: #0d2218;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 10px;
+  border: 1px solid #e1c66b;
+  text-transform: uppercase;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.winner-dog-card-img {
+  width: 110px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.winner-name-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.winner-nickname-text {
+  font-size: 0.9rem;
+  color: #fff;
+  word-wrap: break-word;
+  text-align: center;
+  line-height: 1.2;
+  max-width: 110px;
+}
+
+.winner-role-text {
+  color: #8fa67c;
+  font-size: 0.72rem;
+  margin-top: 4px;
+  display: block;
+  text-align: center;
+  line-height: 1.2;
 }

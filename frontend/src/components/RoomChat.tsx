@@ -9,9 +9,10 @@ interface RoomChatProps {
   disabled: boolean;
   disabledReason: string;
   onSend: (message: string) => void;
+  className?: string;
 }
 
-export function RoomChat({ messages, myPublicId, language, disabled, disabledReason, onSend }: RoomChatProps) {
+export function RoomChat({ messages, myPublicId, language, disabled, disabledReason, onSend, className = '' }: RoomChatProps) {
   const [draft, setDraft] = useState('');
   const listRef = useRef<HTMLDivElement | null>(null);
 
@@ -31,7 +32,7 @@ export function RoomChat({ messages, myPublicId, language, disabled, disabledRea
   };
 
   return (
-    <section className="panel chat-panel">
+    <section className={`panel chat-panel${className ? ` ${className}` : ''}`}>
       <div className="panel-heading">
         <span>💬</span>
         <h2>{language === 'EN' ? 'Pack Chat' : 'Chat trong phòng'}</h2>

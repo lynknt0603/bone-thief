@@ -10,6 +10,8 @@ public class GameState {
     private final Map<String, List<PeekResult>> peekResults = new HashMap<>();
     private final Map<String, Map<Integer, Set<String>>> coAwakePlayerIds = new HashMap<>();
     private final Map<String, List<Integer>> witnessedBoneTakenHours = new HashMap<>();
+    private final Map<String, List<Integer>> observedBonePresentHours = new HashMap<>();
+    private final Map<String, List<Integer>> observedBoneMissingHours = new HashMap<>();
     private final Set<String> packmates = new LinkedHashSet<>();
     private final Set<String> pendingPackCandidates = new LinkedHashSet<>();
     private final Map<String, String> votes = new LinkedHashMap<>();
@@ -36,6 +38,8 @@ public class GameState {
         peekResults.clear();
         coAwakePlayerIds.clear();
         witnessedBoneTakenHours.clear();
+        observedBonePresentHours.clear();
+        observedBoneMissingHours.clear();
         packmates.clear();
         pendingPackCandidates.clear();
         pendingPackCount = 0;
@@ -59,6 +63,8 @@ public class GameState {
         peekResults.clear();
         coAwakePlayerIds.clear();
         witnessedBoneTakenHours.clear();
+        observedBonePresentHours.clear();
+        observedBoneMissingHours.clear();
         packmates.clear();
         pendingPackCandidates.clear();
         pendingPackCount = 0;
@@ -139,6 +145,22 @@ public class GameState {
 
     public List<Integer> getWitnessedBoneTakenHoursFor(String playerId) {
         return witnessedBoneTakenHours.computeIfAbsent(playerId, ignored -> new ArrayList<>());
+    }
+
+    public Map<String, List<Integer>> getObservedBonePresentHours() {
+        return observedBonePresentHours;
+    }
+
+    public List<Integer> getObservedBonePresentHoursFor(String playerId) {
+        return observedBonePresentHours.computeIfAbsent(playerId, ignored -> new ArrayList<>());
+    }
+
+    public Map<String, List<Integer>> getObservedBoneMissingHours() {
+        return observedBoneMissingHours;
+    }
+
+    public List<Integer> getObservedBoneMissingHoursFor(String playerId) {
+        return observedBoneMissingHours.computeIfAbsent(playerId, ignored -> new ArrayList<>());
     }
 
     public List<PeekResult> getPeekResultsFor(String playerId) {

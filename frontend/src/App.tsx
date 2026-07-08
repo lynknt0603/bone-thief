@@ -25,6 +25,18 @@ export default function App() {
   const [error, setError] = useState('');
   const socketRef = useRef<RoomSocket | null>(null);
   const restoredRef = useRef(false);
+  const [prevPhase, setPrevPhase] = useState<string | null>(null);
+  const currentPhaseRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (room) {
+      setPrevPhase(currentPhaseRef.current);
+      currentPhaseRef.current = room.phase;
+    } else {
+      setPrevPhase(null);
+      currentPhaseRef.current = null;
+    }
+  }, [room?.phase]);
 
   useEffect(() => {
     if (restoredRef.current) return;
@@ -262,6 +274,7 @@ export default function App() {
     <>
       <Navbar 
         connected={connected} 
+        inRoom={room !== null}
         language={preferredLanguage} 
         onHome={clearSession} 
         onPreferencesChanged={syncPreferences}
@@ -302,6 +315,7 @@ export default function App() {
             playerId={playerId}
             connected={connected}
             language={preferredLanguage}
+            prevPhase={prevPhase}
             onAction={sendAction}
             onRestart={restartGame}
             onLeave={clearSession}

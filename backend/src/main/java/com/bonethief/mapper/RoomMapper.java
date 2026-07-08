@@ -45,11 +45,31 @@ public class RoomMapper {
         List<GameDto.PlayerHint> knownPackmates = knownPackmates(room, playerId, role);
         GameDto.PlayerHint knownBoneThief = knownBoneThief(room, playerId, role);
         List<GameDto.PlayerHint> selectablePlayers = selectablePlayers(room, playerId, role);
-        return new GameDto.PrivateState(player.getId(), player.getPublicId(), role, state.wakeTimesFor(playerId), state.getDiceRolls().getOrDefault(playerId, List.of()), awake, awakePlayers, allowedActions(room, playerId, role, awake), state.getPeekResults().getOrDefault(playerId, List.of()).stream().map(result -> {
-            Player target = room.getPlayers().get(result.targetPlayerId());
-            String publicId = target == null ? result.targetPlayerId() : target.getPublicId();
-            return new GameDto.PeekResult(publicId, result.targetNickname(), result.wakeTimes());
-        }).toList(), coAwakeRecords(room, playerId), state.getWitnessedBoneTakenHours().getOrDefault(playerId, List.of()), witnessedBoneThefts(room, playerId), knownPackmates, knownBoneThief, selectablePlayers, state.getPhase() == GamePhase.PACK_SELECTION && role == Role.BONE_THIEF ? state.getPendingPackCount() : 0, privateMessage(room, playerId, role, awake));
+        return new GameDto.PrivateState(
+                player.getId(),
+                player.getPublicId(),
+                role,
+                state.wakeTimesFor(playerId),
+                state.getDiceRolls().getOrDefault(playerId, List.of()),
+                awake,
+                awakePlayers,
+                allowedActions(room, playerId, role, awake),
+                state.getPeekResults().getOrDefault(playerId, List.of()).stream().map(result -> {
+                    Player target = room.getPlayers().get(result.targetPlayerId());
+                    String publicId = target == null ? result.targetPlayerId() : target.getPublicId();
+                    return new GameDto.PeekResult(publicId, result.targetNickname(), result.wakeTimes());
+                }).toList(),
+                coAwakeRecords(room, playerId),
+                state.getWitnessedBoneTakenHours().getOrDefault(playerId, List.of()),
+                witnessedBoneThefts(room, playerId),
+                state.getObservedBonePresentHours().getOrDefault(playerId, List.of()),
+                state.getObservedBoneMissingHours().getOrDefault(playerId, List.of()),
+                knownPackmates,
+                knownBoneThief,
+                selectablePlayers,
+                state.getPhase() == GamePhase.PACK_SELECTION && role == Role.BONE_THIEF ? state.getPendingPackCount() : 0,
+                privateMessage(room, playerId, role, awake)
+        );
     }
 
     public ChatDto.Message toChatDto(ChatMessage message) {

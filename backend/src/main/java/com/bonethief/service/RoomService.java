@@ -555,6 +555,7 @@ public class RoomService {
             finishNight(room);
             return;
         }
+        recordBoneStatusObservers(room);
         recordCoAwakePlayers(room);
         setDeadline(room, room.getSettings().getNightSeconds());
     }
@@ -626,6 +627,34 @@ public class RoomService {
                 state.getWitnessedBoneTakenHoursFor(awakeId).add(state.getCurrentHour());
             }
         }
+    }
+
+    private void recordBoneStatusObservers(Room room) {
+        GameState state = room.getGameState();
+        if (!state.isBoneTaken()) {
+            state.awakePlayerIds().stream()
+                    .filter(id -> state.getRoles().get(id) != Role.BONE_THIEF)
+                    .forEach(id -> {
+                        List<Integer> observedHours = state.getObservedBonePresentHoursFor(id);
+                        if (!observedHours.contains(state.getCurrentHour())) {
+                            observedHours.add(state.getCurrentHour());
+                        }
+                    });
+            return;
+        }
+
+        Integer boneTakenHour = state.getBoneTakenHour();
+        if (boneTakenHour == null || boneTakenHour >= state.getCurrentHour()) {
+            return;
+        }
+        state.awakePlayerIds().stream()
+                .filter(id -> state.getRoles().get(id) != Role.BONE_THIEF)
+                .forEach(id -> {
+                    List<Integer> observedHours = state.getObservedBoneMissingHoursFor(id);
+                    if (!observedHours.contains(state.getCurrentHour())) {
+                        observedHours.add(state.getCurrentHour());
+                    }
+                });
     }
 
     private void recordCoAwakePlayers(Room room) {
@@ -704,7 +733,10 @@ public class RoomService {
         if (publicId == null || publicId.isBlank()) {
             throw new BadRequestException("Thiếu Dog mục tiêu.");
         }
-        return room.getPlayers().values().stream().filter(player -> player.getPublicId().equals(publicId)).findFirst().orElseThrow(() -> new BadRequestException("Dog mục tiêu không hợp lệ."));
+        return room.getPlayers().values().stream()
+                .filter(player -> player.getPublicId().equals(publicId))
+                .findFirst()
+                .orElseThrow(() -> new BadRequestException("Dog mục tiêu không hợp lệ."));
     }
 
     private void removeLobbyPlayer(Room room, String playerId) {
@@ -766,12 +798,42 @@ public class RoomService {
         return value;
     }
 
-    private String sanitizeNickname(String nickname) {
-        String clean = nickname == null ? "" : nickname.trim();
-        if (clean.isBlank()) {
-            clean = "Dog " + (random.nextInt(90) + 10);
+    private static final List<String> DOG_ICONS = List.of("🐶", "🐕", "🦮", "🦁", "🐩", "🦊", "🐺", "🐾", "🦴");
+
+    private String getRawNickname(String fullName) {
+        if (fullName == null) {
+            return "";
         }
-        return clean.length() > 24 ? clean.substring(0, 24) : clean;
+        String trimmed = fullName.trim();
+        for (String icon : DOG_ICONS) {
+            if (trimmed.startsWith(icon)) {
+                return trimmed.substring(icon.length()).trim();
+            }
+        }
+        return trimmed;
+    }
+
+    private String sanitizeNickname(String nickname) {
+        if (nickname == null) {
+            nickname = "";
+        }
+        String clean = nickname.trim();
+        String icon = "";
+        String raw = clean;
+        for (String dIcon : DOG_ICONS) {
+            if (clean.startsWith(dIcon)) {
+                icon = dIcon + " ";
+                raw = clean.substring(dIcon.length()).trim();
+                break;
+            }
+        }
+        if (raw.isBlank()) {
+            raw = "Dog " + (random.nextInt(90) + 10);
+        }
+        if (raw.length() > 12) {
+            raw = raw.substring(0, 12).trim();
+        }
+        return icon + raw;
     }
 
     private String uniqueNickname(Room room, String nickname, String currentPlayerId) {
@@ -789,7 +851,10 @@ public class RoomService {
     }
 
     private boolean nicknameExists(Room room, String nickname, String currentPlayerId) {
-        return room.getPlayers().values().stream().filter(player -> !player.getId().equals(currentPlayerId)).anyMatch(player -> player.getNickname().equalsIgnoreCase(nickname));
+        String rawCandidate = getRawNickname(nickname);
+        return room.getPlayers().values().stream()
+                .filter(player -> !player.getId().equals(currentPlayerId))
+                .anyMatch(player -> getRawNickname(player.getNickname()).equalsIgnoreCase(rawCandidate));
     }
 
     private String sanitizePassword(String password) {
@@ -807,7 +872,7 @@ public class RoomService {
     }
 
     private String sanitizeChatMessage(String message) {
-        String clean = message == null ? "" : message.trim().replaceAll("\\s+", " ");
+        String clean = message == null ? "" : message.trim().replaceAll("\s+", " ");
         if (clean.isBlank()) {
             throw new BadRequestException("Tin nhắn không được để trống.");
         }

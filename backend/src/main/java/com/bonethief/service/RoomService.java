@@ -352,7 +352,7 @@ public class RoomService {
             clearDeadline(room);
             return;
         }
-        advanceNightHour(room);
+        advanceNightHour(room, 10);
     }
 
     private Map<String, List<Integer>> randomWakeSchedule(int maxPlayers, List<String> playerIds) {
@@ -545,6 +545,10 @@ public class RoomService {
     }
 
     private void advanceNightHour(Room room) {
+        advanceNightHour(room, 0);
+    }
+
+    private void advanceNightHour(Room room, int extraSeconds) {
         GameState state = room.getGameState();
         state.clearCurrentHourDone();
         if (state.getPhase() != GamePhase.NIGHT_HOUR) {
@@ -557,7 +561,7 @@ public class RoomService {
         }
         recordBoneStatusObservers(room);
         recordCoAwakePlayers(room);
-        setDeadline(room, room.getSettings().getNightSeconds());
+        setDeadline(room, room.getSettings().getNightSeconds() + extraSeconds);
     }
 
     private void finishNight(Room room) {

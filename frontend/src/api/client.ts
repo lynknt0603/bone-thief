@@ -1,11 +1,16 @@
 import { API_BASE_URL } from '../config';
 import type { JoinRoomResponse, PrivateStateDto, PublicRoomDto, RoomLanguage } from '../types';
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+function playerTokenHeaders(playerToken?: string): HeadersInit {
+  return playerToken ? { 'X-Player-Token': playerToken } : {};
+}
+
+async function request<T>(path: string, init?: RequestInit, playerToken?: string): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
+      ...playerTokenHeaders(playerToken),
       ...(init?.headers ?? {}),
     },
   });
@@ -48,8 +53,8 @@ export const api = {
     return request<PublicRoomDto>(`/api/rooms/${roomCode.trim().toUpperCase()}`);
   },
 
-  getPrivateState(roomCode: string, playerId: string): Promise<PrivateStateDto> {
-    return request<PrivateStateDto>(`/api/rooms/${roomCode.trim().toUpperCase()}/players/${playerId}/private-state`);
+  getPrivateState(roomCode: string, playerId: string, playerToken: string): Promise<PrivateStateDto> {
+    return request<PrivateStateDto>(`/api/rooms/${roomCode.trim().toUpperCase()}/players/${playerId}/private-state`, undefined, playerToken);
   },
 
   updateSettings(
@@ -63,45 +68,46 @@ export const api = {
       password?: string;
       whiteDogEnabled?: boolean;
     },
+    playerToken: string,
   ): Promise<PublicRoomDto> {
     return request<PublicRoomDto>(`/api/rooms/${roomCode}/settings`, {
       method: 'POST',
       body: JSON.stringify({ playerId, ...settings }),
-    });
+    }, playerToken);
   },
 
-  updateDisplayName(roomCode: string, playerId: string, nickname: string): Promise<PublicRoomDto> {
+  updateDisplayName(roomCode: string, playerId: string, nickname: string, playerToken: string): Promise<PublicRoomDto> {
     return request<PublicRoomDto>(`/api/rooms/${roomCode}/display-name`, {
       method: 'POST',
       body: JSON.stringify({ playerId, nickname }),
-    });
+    }, playerToken);
   },
 
-  leaveRoom(roomCode: string, playerId: string): Promise<void> {
+  leaveRoom(roomCode: string, playerId: string, playerToken: string): Promise<void> {
     return request<void>(`/api/rooms/${roomCode}/leave`, {
       method: 'POST',
       body: JSON.stringify({ playerId }),
-    });
+    }, playerToken);
   },
 
-  kickPlayer(roomCode: string, playerId: string, targetPlayerId: string): Promise<PublicRoomDto> {
+  kickPlayer(roomCode: string, playerId: string, targetPlayerId: string, playerToken: string): Promise<PublicRoomDto> {
     return request<PublicRoomDto>(`/api/rooms/${roomCode}/kick`, {
       method: 'POST',
       body: JSON.stringify({ playerId, targetPlayerId }),
-    });
+    }, playerToken);
   },
 
-  startGame(roomCode: string, playerId: string): Promise<PublicRoomDto> {
+  startGame(roomCode: string, playerId: string, playerToken: string): Promise<PublicRoomDto> {
     return request<PublicRoomDto>(`/api/rooms/${roomCode}/start`, {
       method: 'POST',
       body: JSON.stringify({ playerId }),
-    });
+    }, playerToken);
   },
 
-  restartGame(roomCode: string, playerId: string): Promise<PublicRoomDto> {
+  restartGame(roomCode: string, playerId: string, playerToken: string): Promise<PublicRoomDto> {
     return request<PublicRoomDto>(`/api/rooms/${roomCode}/restart`, {
       method: 'POST',
       body: JSON.stringify({ playerId }),
-    });
+    }, playerToken);
   },
 };

@@ -13,6 +13,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.*;
@@ -52,28 +54,30 @@ public class RoomService {
         if (request.language() != null) {
             room.getSettings().setLanguage(request.language());
         }
-        Player host = new Player(UUID.randomUUID().toString(), nextPublicPlayerId(room), uniqueNickname(room, request.nickname(), null), true);
+        Player host = new Player(UUID.randomUUID().toString(), nextPlayerSessionToken(), nextPublicPlayerId(room), uniqueNickname(room, request.nickname(), null), true);
         room.getPlayers().put(host.getId(), host);
         roomRepository.save(room);
-        return new RoomDto.JoinResponse(host.getId(), roomMapper.toPublicRoom(room), roomMapper.toPrivateState(room, host.getId()));
+        return new RoomDto.JoinResponse(host.getId(), host.getSessionToken(), roomMapper.toPublicRoom(room), roomMapper.toPrivateState(room, host.getId()));
     }
 
     public RoomDto.JoinResponse joinRoom(String roomCode, RoomDto.JoinRequest request) {
         Room room = requireRoom(roomCode);
         String playerId;
+        String playerToken;
         synchronized (room) {
             ensurePhase(room, GamePhase.LOBBY, "Chỉ có thể vào phòng khi ván chưa bắt đầu.");
             requirePassword(room, request.password());
             if (room.getPlayers().size() >= room.getSettings().getMaxPlayers()) {
                 throw new BadRequestException("Phòng đã đủ Dog.");
             }
-            Player player = new Player(UUID.randomUUID().toString(), nextPublicPlayerId(room), uniqueNickname(room, request.nickname(), null), false);
+            Player player = new Player(UUID.randomUUID().toString(), nextPlayerSessionToken(), nextPublicPlayerId(room), uniqueNickname(room, request.nickname(), null), false);
             player.setReady(false);
             room.getPlayers().put(player.getId(), player);
             playerId = player.getId();
+            playerToken = player.getSessionToken();
         }
         publishRoom(room);
-        return new RoomDto.JoinResponse(playerId, roomMapper.toPublicRoom(room), roomMapper.toPrivateState(room, playerId));
+        return new RoomDto.JoinResponse(playerId, playerToken, roomMapper.toPublicRoom(room), roomMapper.toPrivateState(room, playerId));
     }
 
     public RoomDto.PublicRoom getPublicRoom(String roomCode) {
@@ -83,18 +87,18 @@ public class RoomService {
         }
     }
 
-    public GameDto.PrivateState getPrivateState(String roomCode, String playerId) {
+    public GameDto.PrivateState getPrivateState(String roomCode, String playerId, String playerToken) {
         Room room = requireRoom(roomCode);
         synchronized (room) {
-            requirePlayer(room, playerId);
+            requirePlayerSession(room, playerId, playerToken);
             return roomMapper.toPrivateState(room, playerId);
         }
     }
 
-    public RoomDto.PublicRoom updateSettings(String roomCode, RoomDto.SettingsRequest request) {
+    public RoomDto.PublicRoom updateSettings(String roomCode, RoomDto.SettingsRequest request, String playerToken) {
         Room room = requireRoom(roomCode);
         synchronized (room) {
-            requireHost(room, request.playerId());
+            requireHost(room, request.playerId(), playerToken);
             boolean hasLobbyOnlyChanges = request.maxPlayers() != null || request.nightSeconds() != null || request.packSelectionSeconds() != null || request.password() != null || request.whiteDogEnabled() != null;
             if (hasLobbyOnlyChanges) {
                 ensurePhase(room, GamePhase.LOBBY, "Chỉ host được đổi cấu hình trước khi bắt đầu.");
@@ -126,21 +130,21 @@ public class RoomService {
         return getPublicRoom(roomCode);
     }
 
-    public RoomDto.PublicRoom updateDisplayName(String roomCode, RoomDto.UpdateDisplayNameRequest request) {
+    public RoomDto.PublicRoom updateDisplayName(String roomCode, RoomDto.UpdateDisplayNameRequest request, String playerToken) {
         Room room = requireRoom(roomCode);
         synchronized (room) {
-            Player player = requirePlayer(room, request.playerId());
+            Player player = requirePlayerSession(room, request.playerId(), playerToken);
             player.setNickname(uniqueNickname(room, request.nickname(), player.getId()));
         }
         publishRoom(room);
         return getPublicRoom(roomCode);
     }
 
-    public void leaveRoom(String roomCode, RoomDto.PlayerRequest request) {
+    public void leaveRoom(String roomCode, RoomDto.PlayerRequest request, String playerToken) {
         Room room = requireRoom(roomCode);
         boolean roomDeleted;
         synchronized (room) {
-            Player player = requirePlayer(room, request.playerId());
+            Player player = requirePlayerSession(room, request.playerId(), playerToken);
             ensurePhase(room, GamePhase.LOBBY, "Chỉ có thể rời phòng khi ván chưa bắt đầu.");
             removeLobbyPlayer(room, player.getId());
             roomDeleted = room.getPlayers().isEmpty();
@@ -153,10 +157,10 @@ public class RoomService {
         }
     }
 
-    public RoomDto.PublicRoom kickPlayer(String roomCode, RoomDto.KickPlayerRequest request) {
+    public RoomDto.PublicRoom kickPlayer(String roomCode, RoomDto.KickPlayerRequest request, String playerToken) {
         Room room = requireRoom(roomCode);
         synchronized (room) {
-            requireHost(room, request.playerId());
+            requireHost(room, request.playerId(), playerToken);
             ensurePhase(room, GamePhase.LOBBY, "Chỉ có thể đuổi Dog khi ván chưa bắt đầu.");
             Player target = requirePlayerByPublicId(room, request.targetPlayerId());
             if (target.isHost()) {
@@ -179,6 +183,14 @@ public class RoomService {
         return getPublicRoom(roomCode);
     }
 
+    public RoomDto.PublicRoom startGame(String roomCode, RoomDto.PlayerRequest request, String playerToken) {
+        Room room = requireRoom(roomCode);
+        synchronized (room) {
+            requirePlayerSession(room, request.playerId(), playerToken);
+        }
+        return startGame(roomCode, request);
+    }
+
     public RoomDto.PublicRoom startGame(String roomCode, RoomDto.PlayerRequest request) {
         Room room = requireRoom(roomCode);
         synchronized (room) {
@@ -195,6 +207,14 @@ public class RoomService {
         }
         publishRoom(room);
         return getPublicRoom(roomCode);
+    }
+
+    public RoomDto.PublicRoom restartGame(String roomCode, RoomDto.PlayerRequest request, String playerToken) {
+        Room room = requireRoom(roomCode);
+        synchronized (room) {
+            requirePlayerSession(room, request.playerId(), playerToken);
+        }
+        return restartGame(roomCode, request);
     }
 
     public RoomDto.PublicRoom restartGame(String roomCode, RoomDto.PlayerRequest request) {
@@ -722,6 +742,22 @@ public class RoomService {
         return player;
     }
 
+    private Player requireHost(Room room, String playerId, String playerToken) {
+        Player player = requirePlayerSession(room, playerId, playerToken);
+        if (!player.isHost()) {
+            throw new BadRequestException("Chỉ host được thực hiện hành động này.");
+        }
+        return player;
+    }
+
+    private Player requirePlayerSession(Room room, String playerId, String playerToken) {
+        Player player = requirePlayer(room, playerId);
+        if (!tokensMatch(player.getSessionToken(), playerToken)) {
+            throw new BadRequestException("Phiên người chơi không hợp lệ. Hãy vào lại phòng.");
+        }
+        return player;
+    }
+
     private Player requirePlayer(Room room, String playerId) {
         if (playerId == null || playerId.isBlank()) {
             throw new BadRequestException("Thiếu playerId.");
@@ -780,6 +816,19 @@ public class RoomService {
             code = builder.toString();
         } while (roomRepository.existsByCode(code));
         return code;
+    }
+
+    private String nextPlayerSessionToken() {
+        byte[] tokenBytes = new byte[32];
+        random.nextBytes(tokenBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(tokenBytes);
+    }
+
+    private boolean tokensMatch(String expected, String candidate) {
+        if (expected == null || candidate == null || candidate.isBlank()) {
+            return false;
+        }
+        return MessageDigest.isEqual(expected.getBytes(StandardCharsets.UTF_8), candidate.getBytes(StandardCharsets.UTF_8));
     }
 
     private int sanitizeMaxPlayers(Integer value) {

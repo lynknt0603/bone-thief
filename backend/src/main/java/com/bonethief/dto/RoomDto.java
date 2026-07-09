@@ -12,7 +12,7 @@ public class RoomDto {
     public record JoinRequest(String nickname, String password) {
     }
 
-    public record JoinResponse(String playerId, PublicRoom room, GameDto.PrivateState privateState) {
+    public record JoinResponse(String playerId, String playerToken, PublicRoom room, GameDto.PrivateState privateState) {
     }
 
     public record KickPlayerRequest(String playerId, String targetPlayerId) {

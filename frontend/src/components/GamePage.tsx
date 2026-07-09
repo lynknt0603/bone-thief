@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from 'react';
-import { actionLabel, phaseLabel, parseNickname, roleLabel, roleEmoji, roleGuides } from '../labels';
+import { actionLabel, phaseLabel, parseNickname, roleLabel, roleEmoji, roleGuides, translateText } from '../labels';
 import type { ActionPayload, PrivateStateDto, PublicRoomDto, RoomLanguage } from '../types';
 import { PrivatePanel } from './PrivatePanel';
 import { ResultPage } from './ResultPage';
@@ -324,9 +324,10 @@ export function GamePage({ room, privateState, playerId, connected, language, pr
 
           {room.phase === 'NIGHT_HOUR' && !allowed.includes('SELECT_PACKMATE') && (
             <div className="action-stack">
-              {privateState?.message ? (
-                (privateState.message.includes("Không có dấu vết riêng") || privateState.message.toLowerCase().includes("no private clue")) &&
-                privateState.role === 'YARD_DOG' && privateState.awakePlayers.length > 0 ? (
+              {privateState?.message ? (() => {
+                const translatedMsg = translateText(privateState.message, language);
+                const hasNoPrivateClue = translatedMsg.includes("Không có dấu vết riêng") || translatedMsg.toLowerCase().includes("no private clue");
+                return hasNoPrivateClue && privateState.role === 'YARD_DOG' && privateState.awakePlayers.length > 0 ? (
                   <div className="co-awake-alert">
                     <span>⚠️</span>
                     <p>
@@ -336,9 +337,9 @@ export function GamePage({ room, privateState, playerId, connected, language, pr
                     </p>
                   </div>
                 ) : (
-                  <p>{privateState.message}</p>
-                )
-              ) : (
+                  <p>{translatedMsg}</p>
+                );
+              })() : (
                 <>
                   {!privateState?.awake && <p>{language === 'EN' ? 'Not your turn yet. Keep secret and watch the phase.' : 'Chưa tới giờ của bạn. Giữ bí mật và quan sát phase.'}</p>}
                   {privateState?.awake && (

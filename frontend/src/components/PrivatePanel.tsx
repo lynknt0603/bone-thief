@@ -1,4 +1,4 @@
-import { actionLabel, roleEmoji, roleLabel, parseNickname, getCardImageUrl } from '../labels';
+import { actionLabel, roleEmoji, roleLabel, parseNickname, getCardImageUrl, translateText } from '../labels';
 import type { PrivateStateDto, RoomLanguage } from '../types';
 
 interface PrivatePanelProps {
@@ -39,7 +39,7 @@ export function PrivatePanel({ privateState, language }: PrivatePanelProps) {
         )}
       </div>
 
-      <p className="private-message">{privateState.message}</p>
+      <p className="private-message">{translateText(privateState.message, language)}</p>
 
       {privateState.diceRolls.length > 1 ? (
         // Map 4 / choice mode: Show dice choices and highlight selected one in yellow

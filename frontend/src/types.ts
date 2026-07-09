@@ -88,6 +88,7 @@ export interface PlayerRoleDto {
   playerId: string;
   nickname: string;
   role: Role;
+  wakeTimes: number[];
 }
 
 export interface VoteResultDto {
@@ -124,6 +125,7 @@ export interface PublicRoomDto {
 
 export interface JoinRoomResponse {
   playerId: string;
+  playerToken: string;
   room: PublicRoomDto;
   privateState: PrivateStateDto;
 }

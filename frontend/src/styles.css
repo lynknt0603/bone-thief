@@ -991,6 +991,13 @@ h2,
   font-weight: 800;
 }
 
+.role-card-waketimes {
+  font-size: 0.74rem;
+  color: #8c763d;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
 .vote-grid-modern {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));

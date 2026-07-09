@@ -9,6 +9,7 @@ import type { ActionPayload, ChatMessageDto, JoinRoomResponse, PrivateStateDto, 
 
 const ROOM_KEY = 'boneThief.roomCode';
 const PLAYER_KEY = 'boneThief.playerId';
+const PLAYER_TOKEN_KEY = 'boneThief.playerToken';
 const NICKNAME_KEY = 'boneThief.nickname';
 const LANGUAGE_KEY = 'boneThief.language';
 
@@ -17,6 +18,7 @@ export default function App() {
   const [privateState, setPrivateState] = useState<PrivateStateDto | null>(null);
   const [roomCode, setRoomCode] = useState(() => localStorage.getItem(ROOM_KEY) ?? '');
   const [playerId, setPlayerId] = useState(() => localStorage.getItem(PLAYER_KEY) ?? '');
+  const [playerToken, setPlayerToken] = useState(() => localStorage.getItem(PLAYER_TOKEN_KEY) ?? '');
   const [preferredLanguage, setPreferredLanguage] = useState<RoomLanguage>(() =>
     localStorage.getItem(LANGUAGE_KEY) === 'EN' ? 'EN' : 'VI',
   );
@@ -43,15 +45,17 @@ export default function App() {
     restoredRef.current = true;
     const storedRoomCode = localStorage.getItem(ROOM_KEY);
     const storedPlayerId = localStorage.getItem(PLAYER_KEY);
-    if (!storedRoomCode || !storedPlayerId) return;
+    const storedPlayerToken = localStorage.getItem(PLAYER_TOKEN_KEY);
+    if (!storedRoomCode || !storedPlayerId || !storedPlayerToken) return;
 
     setLoading(true);
-    Promise.all([api.getRoom(storedRoomCode), api.getPrivateState(storedRoomCode, storedPlayerId)])
+    Promise.all([api.getRoom(storedRoomCode), api.getPrivateState(storedRoomCode, storedPlayerId, storedPlayerToken)])
       .then(([publicRoom, privateData]) => {
         setRoom(publicRoom);
         setPrivateState(privateData);
         setRoomCode(publicRoom.roomCode);
         setPlayerId(storedPlayerId);
+        setPlayerToken(storedPlayerToken);
       })
       .catch((exception: Error) => {
         setError(exception.message);
@@ -61,12 +65,13 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!roomCode || !playerId) return undefined;
+    if (!roomCode || !playerId || !playerToken) return undefined;
 
     socketRef.current?.disconnect();
     const socket = createRoomSocket({
       roomCode,
       playerId,
+      playerToken,
       onRoom: setRoom,
       onPrivateState: setPrivateState,
       onChat: (message: ChatMessageDto) => {
@@ -90,21 +95,21 @@ export default function App() {
         socketRef.current = null;
       }
     };
-  }, [roomCode, playerId]);
+  }, [roomCode, playerId, playerToken]);
 
   useEffect(() => {
     const handlePreferencesChanged = () => {
       setPreferredLanguage(localStorage.getItem(LANGUAGE_KEY) === 'EN' ? 'EN' : 'VI');
       
       const savedNickname = localStorage.getItem(NICKNAME_KEY);
-      if (room && playerId && savedNickname) {
+      if (room && playerId && playerToken && savedNickname) {
         const icon = localStorage.getItem('boneThief.icon') ?? '🐶';
         const fullName = `${icon} ${savedNickname.trim()}`;
         const myPublicId = privateState?.publicPlayerId;
         const me = room.players.find(p => p.id === myPublicId);
         if (me && me.nickname !== fullName) {
           void run(async () => {
-            const updated = await api.updateDisplayName(room.roomCode, playerId, fullName);
+            const updated = await api.updateDisplayName(room.roomCode, playerId, fullName, playerToken);
             setRoom(updated);
           });
         }
@@ -121,16 +126,18 @@ export default function App() {
       window.removeEventListener('storage', handleStorage);
       window.removeEventListener('boneThief.preferencesChanged', handlePreferencesChanged);
     };
-  }, [room, playerId, privateState?.publicPlayerId]);
+  }, [room, playerId, playerToken, privateState?.publicPlayerId]);
 
   const applyJoinResponse = (response: JoinRoomResponse, nickname: string) => {
     localStorage.setItem(ROOM_KEY, response.room.roomCode);
     localStorage.setItem(PLAYER_KEY, response.playerId);
+    localStorage.setItem(PLAYER_TOKEN_KEY, response.playerToken);
     localStorage.setItem(NICKNAME_KEY, nickname);
     setRoom(response.room);
     setPrivateState(response.privateState);
     setRoomCode(response.room.roomCode);
     setPlayerId(response.playerId);
+    setPlayerToken(response.playerToken);
   };
 
   const run = async (operation: () => Promise<void>) => {
@@ -150,10 +157,12 @@ export default function App() {
     socketRef.current = null;
     localStorage.removeItem(ROOM_KEY);
     localStorage.removeItem(PLAYER_KEY);
+    localStorage.removeItem(PLAYER_TOKEN_KEY);
     setRoom(null);
     setPrivateState(null);
     setRoomCode('');
     setPlayerId('');
+    setPlayerToken('');
     setConnected(false);
   };
 
@@ -198,25 +207,25 @@ export default function App() {
     password?: string;
     whiteDogEnabled?: boolean;
   }) => {
-    if (!room || !playerId) return;
+    if (!room || !playerId || !playerToken) return;
     void run(async () => {
-      const updated = await api.updateSettings(room.roomCode, playerId, settings);
+      const updated = await api.updateSettings(room.roomCode, playerId, settings, playerToken);
       setRoom(updated);
     });
   };
 
   const updateDisplayName = (nickname: string) => {
-    if (!room || !playerId) return;
+    if (!room || !playerId || !playerToken) return;
     void run(async () => {
       const fullName = buildFullName(nickname);
-      const updated = await api.updateDisplayName(room.roomCode, playerId, fullName);
+      const updated = await api.updateDisplayName(room.roomCode, playerId, fullName, playerToken);
       setRoom(updated);
       localStorage.setItem(NICKNAME_KEY, nickname);
     });
   };
 
   const leaveRoom = () => {
-    if (!room || !playerId) {
+    if (!room || !playerId || !playerToken) {
       clearSession();
       return;
     }
@@ -225,31 +234,31 @@ export default function App() {
       return;
     }
     void run(async () => {
-      await api.leaveRoom(room.roomCode, playerId);
+      await api.leaveRoom(room.roomCode, playerId, playerToken);
       clearSession();
     });
   };
 
   const kickPlayer = (targetPlayerId: string) => {
-    if (!room || !playerId) return;
+    if (!room || !playerId || !playerToken) return;
     void run(async () => {
-      const updated = await api.kickPlayer(room.roomCode, playerId, targetPlayerId);
+      const updated = await api.kickPlayer(room.roomCode, playerId, targetPlayerId, playerToken);
       setRoom(updated);
     });
   };
 
   const startGame = () => {
-    if (!room || !playerId) return;
+    if (!room || !playerId || !playerToken) return;
     void run(async () => {
-      const updated = await api.startGame(room.roomCode, playerId);
+      const updated = await api.startGame(room.roomCode, playerId, playerToken);
       setRoom(updated);
     });
   };
 
   const restartGame = () => {
-    if (!room || !playerId) return;
+    if (!room || !playerId || !playerToken) return;
     void run(async () => {
-      const updated = await api.restartGame(room.roomCode, playerId);
+      const updated = await api.restartGame(room.roomCode, playerId, playerToken);
       setRoom(updated);
     });
   };

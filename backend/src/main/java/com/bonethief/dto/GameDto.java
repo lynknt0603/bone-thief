@@ -38,7 +38,7 @@ public class GameDto {
                              List<PlayerRole> packmates, List<VoteResult> votes, List<PlayerRole> finalRoles) {
     }
 
-    public record PlayerRole(String playerId, String nickname, Role role) {
+    public record PlayerRole(String playerId, String nickname, Role role, List<Integer> wakeTimes) {
     }
 
     public record VoteResult(String voterId, String voterNickname, String targetId, String targetNickname) {

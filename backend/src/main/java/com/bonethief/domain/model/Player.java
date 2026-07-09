@@ -2,13 +2,15 @@ package com.bonethief.domain.model;
 
 public class Player {
     private final String id;
+    private final String sessionToken;
     private final String publicId;
     private String nickname;
     private boolean host;
     private boolean ready;
 
-    public Player(String id, String publicId, String nickname, boolean host) {
+    public Player(String id, String sessionToken, String publicId, String nickname, boolean host) {
         this.id = id;
+        this.sessionToken = sessionToken;
         this.publicId = publicId;
         this.nickname = nickname;
         this.host = host;
@@ -17,6 +19,10 @@ public class Player {
 
     public String getId() {
         return id;
+    }
+
+    public String getSessionToken() {
+        return sessionToken;
     }
 
     public String getPublicId() {

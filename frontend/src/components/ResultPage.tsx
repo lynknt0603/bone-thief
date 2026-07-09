@@ -1,4 +1,4 @@
-import { roleLabel, winningPackLabel, parseNickname, getCardImageUrl } from '../labels';
+import { roleLabel, winningPackLabel, parseNickname, getCardImageUrl, translateText } from '../labels';
 import type { PublicRoomDto, RoomLanguage } from '../types';
 import { RoomChat } from './RoomChat';
 
@@ -97,7 +97,7 @@ export function ResultPage({ room, myPublicId, connected, language, onRestart, o
                 <div className="vote-card-modern" key={vote.voterId}>
                   <span className="voter-name">{parseNickname(vote.voterNickname).nickname}</span>
                   <span className="vote-arrow">➔</span>
-                  <span className="target-name">{parseNickname(vote.targetNickname).nickname}</span>
+                  <span className="target-name">{parseNickname(translateText(vote.targetNickname, language)).nickname}</span>
                 </div>
               ))}
             </div>
@@ -128,6 +128,11 @@ export function ResultPage({ room, myPublicId, connected, language, onRestart, o
                   />
                   <strong>{parseNickname(player.nickname).nickname}</strong>
                   <small>{roleLabel(player.role, language)}</small>
+                  {player.wakeTimes && player.wakeTimes.length > 0 && (
+                    <span className="role-card-waketimes">
+                      ⏰ {player.wakeTimes.map(h => `${h}:00am`).join(', ')}
+                    </span>
+                  )}
                 </div>
               ))}
             </div>

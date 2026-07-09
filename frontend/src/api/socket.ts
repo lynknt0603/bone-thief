@@ -5,6 +5,7 @@ import type { ActionPayload, ChatMessageDto, PrivateStateDto, PublicRoomDto } fr
 interface RoomSocketOptions {
   roomCode: string;
   playerId: string;
+  playerToken: string;
   onRoom: (room: PublicRoomDto) => void;
   onPrivateState: (state: PrivateStateDto) => void;
   onChat: (message: ChatMessageDto) => void;
@@ -23,6 +24,11 @@ export interface RoomSocket {
 export function createRoomSocket(options: RoomSocketOptions): RoomSocket {
   const client = new Client({
     brokerURL: `${WS_BASE_URL}?playerId=${encodeURIComponent(options.playerId)}`,
+    connectHeaders: {
+      roomCode: options.roomCode,
+      playerId: options.playerId,
+      playerToken: options.playerToken,
+    },
     reconnectDelay: 1500,
     debug: () => undefined,
     onConnect: () => {

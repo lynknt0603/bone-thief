@@ -206,3 +206,62 @@ export const STORAGE_KEYS = {
   AUTO_READY: 'boneThief.autoReady',
   ICON: 'boneThief.icon',
 } as const;
+
+const privateMessageTranslations: Record<RoomLanguage, Record<string, string>> = {
+  VI: {
+    "Wait for the pack to gather. The host will start the game.": "Đợi đủ Dog rồi host sẽ bắt đầu ván.",
+    "Choose 1 of your 2 secret wake times. You only act on the chosen hour.": "Chọn 1 trong 2 giờ thức bí mật. Bạn chỉ hành động ở giờ đã chọn.",
+    "Wait for the Yard Dogs to choose their secret wake time.": "Đợi các Dog Canh Sân chọn giờ thức bí mật.",
+    "You are asleep in your kennel. Keep your secret and wait.": "Bạn đang ngủ trong chuồng. Giữ bí mật và chờ giờ của mình.",
+    "You are done for this hour. Wait for the next wake call.": "Bạn đã xong lượt ở canh giờ này. Chờ tiếng gọi giờ tiếp theo.",
+    "You are awake. Take the bone quietly.": "Bạn đang thức. Hãy lấy xương thật gọn.",
+    "You are awake alone. You may peek at another Dog's wake time.": "Bạn thức một mình. Có thể xem dấu vết giờ thức của một Dog khác.",
+    "You are awake. There is no private clue to peek at this hour.": "Bạn đang thức. Không có dấu vết riêng để xem ở giờ này.",
+    "You were seen. Choose 1 witness to join your side.": "Bạn vừa bị nhìn thấy. Chọn 1 nhân chứng sẽ đứng về phía mình.",
+    "Choose the Dog who will join your side.": "Chọn Dog sẽ đứng về phía bạn.",
+    "You saw the bone being taken. Wait for a secret choice to finish, then this hour will continue.": "Bạn vừa thấy xương bị lấy. Đợi một nhịp để xử lý lựa chọn bí mật, sau đó bạn sẽ tiếp tục canh giờ này.",
+    "Wait for the secret choice to finish.": "Đợi lựa chọn bí mật hoàn tất.",
+    "Try to avoid being detected and accused by the pack.": "Hãy cố gắng tránh bị đàn chó phát hiện và buộc tội.",
+    "You are the White Dog recruited into the thief pack. You still win alone if voted out, or win with the thief pack if the Bone Thief escapes.": "Bạn là Chó Trắng đã vào bầy trộm. Bạn vẫn thắng một mình nếu bị vote treo cổ, hoặc thắng chung nếu Chó Trộm Xương không bị phát hiện.",
+    "Protect the bone thief from being detected.": "Hãy bảo vệ cho chó trộm xương không bị phát hiện.",
+    "You are the White Dog. If the pack votes you out, you win alone.": "Bạn là Chó Trắng. Nếu bị cả đàn vote treo cổ, bạn thắng một mình.",
+    "Join the pack in searching for the bone thief.": "Hãy cùng đàn chó truy tìm kẻ trộm xương.",
+    "You have voted. Wait for the other Dogs.": "Bạn đã vote. Chờ các Dog còn lại.",
+    "Choose the Dog you suspect took the bone.": "Chọn Dog bạn nghi đã lấy xương.",
+    "The game has ended.": "Ván đã có kết quả.",
+    "Blank vote": "Phiếu trống"
+  },
+  EN: {
+    "Đợi đủ Dog rồi host sẽ bắt đầu ván.": "Wait for the pack to gather. The host will start the game.",
+    "Chọn 1 trong 2 giờ thức bí mật. Bạn chỉ hành động ở giờ đã chọn.": "Choose 1 of your 2 secret wake times. You only act on the chosen hour.",
+    "Đợi các Dog Canh Sân chọn giờ thức bí mật.": "Wait for the Yard Dogs to choose their secret wake time.",
+    "Bạn đang ngủ trong chuồng. Giữ bí mật và chờ giờ của mình.": "You are asleep in your kennel. Keep your secret and wait.",
+    "Bạn đã xong lượt ở canh giờ này. Chờ tiếng gọi giờ tiếp theo.": "You are done for this hour. Wait for the next wake call.",
+    "Bạn đang thức. Hãy lấy xương thật gọn.": "You are awake. Take the bone quietly.",
+    "Bạn thức một mình. Có thể xem dấu vết giờ thức của một Dog khác.": "You are awake alone. You may peek at another Dog's wake time.",
+    "Bạn đang thức. Không có dấu vết riêng để xem ở giờ này.": "You are awake. There is no private clue to peek at this hour.",
+    "Bạn vừa bị nhìn thấy. Chọn 1 nhân chứng sẽ đứng về phía mình.": "You were seen. Choose 1 witness to join your side.",
+    "Chọn Dog sẽ đứng về phía bạn.": "Choose the Dog who will join your side.",
+    "Bạn vừa thấy xương bị lấy. Đợi một nhịp để xử lý lựa chọn bí mật, sau đó bạn sẽ tiếp tục canh giờ này.": "You saw the bone being taken. Wait for a secret choice to finish, then this hour will continue.",
+    "Đợi lựa chọn bí mật hoàn tất.": "Wait for the secret choice to finish.",
+    "Hãy cố gắng tránh bị đàn chó phát hiện và buộc tội.": "Try to avoid being detected and accused by the pack.",
+    "Bạn là Chó Trắng đã vào bầy trộm. Bạn vẫn thắng một mình nếu bị vote treo cổ, hoặc thắng chung nếu Chó Trộm Xương không bị phát hiện.": "You are the White Dog recruited into the thief pack. You still win alone if voted out, or win with the thief pack if the Bone Thief escapes.",
+    "Hãy bảo vệ cho chó trộm xương không bị phát hiện.": "Protect the bone thief from being detected.",
+    "Bạn là Chó Trắng. Nếu bị cả đàn vote treo cổ, bạn thắng một mình.": "You are the White Dog. If the pack votes you out, you win alone.",
+    "Hãy cùng đàn chó truy tìm kẻ trộm xương.": "Join the pack in searching for the bone thief.",
+    "Bạn đã vote. Chờ các Dog còn lại.": "You have voted. Wait for the other Dogs.",
+    "Chọn Dog bạn nghi đã lấy xương.": "Choose the Dog you suspect took the bone.",
+    "Ván đã có kết quả.": "The game has ended.",
+    "Phiếu trống": "Blank vote"
+  }
+};
+
+export function translateText(text: string | null | undefined, language: RoomLanguage): string {
+  if (!text) return '';
+  const trimmed = text.trim();
+  const dict = privateMessageTranslations[language];
+  if (dict && dict[trimmed]) {
+    return dict[trimmed];
+  }
+  return text;
+}

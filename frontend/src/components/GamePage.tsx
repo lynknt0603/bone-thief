@@ -270,7 +270,7 @@ export function GamePage({ room, privateState, playerId, connected, language, pr
                         type="button"
                         onClick={() => onAction({ type: 'SELECT_WAKE_TIME', selectedWakeTime: time })}
                       >
-                        <span>🌙 {time}:00</span>
+                        <span>🌙 {formatWakeHour(time)}</span>
                       </button>
                     ))}
                   </div>
@@ -577,7 +577,7 @@ function phaseDescription(room: PublicRoomDto, language: RoomLanguage): string {
 }
 
 function formatWakeHour(hour: number): string {
-  return `${hour}:00pm`;
+  return `${hour}:00am`;
 }
 
 function phaseIcon(phase: PublicRoomDto['phase']): string {

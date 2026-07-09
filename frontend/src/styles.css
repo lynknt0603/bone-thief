@@ -612,6 +612,14 @@ h2,
   border-color: #d8bd73;
 }
 
+.chip-selected {
+  background: #fdf2c6;
+  border-color: #d7b863;
+  color: #5a351d;
+  font-weight: 900;
+  box-shadow: 0 0 6px rgba(215, 184, 99, 0.35);
+}
+
 .witness-alert {
   border: 1px solid #d7b863;
   border-radius: 8px;

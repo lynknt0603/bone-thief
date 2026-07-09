@@ -41,30 +41,38 @@ export function PrivatePanel({ privateState, language }: PrivatePanelProps) {
 
       <p className="private-message">{privateState.message}</p>
 
-      {privateState.diceRolls.length > 0 && (
+      {privateState.diceRolls.length > 1 ? (
+        // Map 4 / choice mode: Show dice choices and highlight selected one in yellow
         <div className="info-block">
           <span>{language === 'EN' ? 'Secret dice' : 'Xúc xắc bí mật'}</span>
           <div className="chip-row">
-            {privateState.diceRolls.map((time, index) => (
-              <span className="chip" key={`roll-${time}-${index}`}>
-                {time}:00
-              </span>
-            ))}
+            {privateState.diceRolls.map((time, index) => {
+              const isSelected = privateState.wakeTimes.includes(time);
+              return (
+                <span 
+                  className={`chip ${isSelected ? 'chip-selected' : ''}`} 
+                  key={`roll-${time}-${index}`}
+                >
+                  {formatWakeHour(time)}
+                </span>
+              );
+            })}
           </div>
         </div>
-      )}
-
-      {privateState.wakeTimes.length > 0 && (
-        <div className="info-block">
-          <span>{language === 'EN' ? 'Active wake time' : 'Giờ thức hiệu lực'}</span>
-          <div className="chip-row">
-            {privateState.wakeTimes.map((time, index) => (
-              <span className="chip" key={`${time}-${index}`}>
-                {time}:00
-              </span>
-            ))}
+      ) : (
+        // Other maps: Only show wake hours once, do not show duplicate dice rolls block
+        privateState.wakeTimes.length > 0 && (
+          <div className="info-block">
+            <span>{language === 'EN' ? 'Active wake time' : 'Giờ thức hiệu lực'}</span>
+            <div className="chip-row">
+              {privateState.wakeTimes.map((time, index) => (
+                <span className="chip" key={`${time}-${index}`}>
+                  {formatWakeHour(time)}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+        )
       )}
 
       {(privateState.witnessedBoneThefts.length > 0 ||
@@ -188,5 +196,5 @@ export function PrivatePanel({ privateState, language }: PrivatePanelProps) {
 }
 
 function formatWakeHour(hour: number): string {
-  return `${hour}:00pm`;
+  return `${hour}:00am`;
 }

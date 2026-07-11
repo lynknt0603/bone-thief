@@ -1,6 +1,8 @@
 # Bone Thief
 
-A realtime multiplayer deduction web game where dogs in a yard collaborate to find the Bone Thief.
+A room-based multiplayer web game themed around dogs in a yard trying to find who stole the bone.
+
+👉 **Play the game online:** [https://lynknt0603.github.io/bone-thief/](https://lynknt0603.github.io/bone-thief/)
 
 ---
 
